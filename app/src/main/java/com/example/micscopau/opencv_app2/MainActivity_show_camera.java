@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
@@ -118,6 +119,7 @@ public class MainActivity_show_camera extends AppCompatActivity implements CvCam
         mRgba.release();
     }
 
+    /* //Original code - replacing with comment code to allow all orientations
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
         // TODO Auto-generated method stub
@@ -128,5 +130,31 @@ public class MainActivity_show_camera extends AppCompatActivity implements CvCam
         Core.flip(mRgbaF, mRgba, 1 );
 
         return mRgba; // This function must return
+    }
+    */
+
+    @Override
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        mRgba = inputFrame.rgba();
+        switch (mOpenCvCameraView.getDisplay().getRotation()) {
+            case Surface.ROTATION_0: // Vertical portrait
+                Core.transpose(mRgba, mRgbaT);
+                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+                Core.flip(mRgbaF, mRgba, 1);
+                break;
+            case Surface.ROTATION_90: // 90° anti-clockwise
+                break;
+            case Surface.ROTATION_180: // Vertical anti-portrait
+                Core.transpose(mRgba, mRgbaT);
+                Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
+                Core.flip(mRgbaF, mRgba, 0);
+                break;
+            case Surface.ROTATION_270: // 90° clockwise
+                Imgproc.resize(mRgba, mRgbaF, mRgbaF.size(), 0,0, 0);
+                Core.flip(mRgbaF, mRgba, -1);
+                break;
+            default:
+        }
+        return mRgba;
     }
 }
